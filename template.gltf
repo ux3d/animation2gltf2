@@ -1,0 +1,77 @@
+{
+   "accessors": [
+      {
+         "bufferView": 0,
+         "byteOffset": 0,
+         "componentType": 5126,
+         "count": 5,
+         "type": "SCALAR",
+		 "max": [
+		  	5.0
+		 ],
+		 "min": [
+			0.0
+		 ]		 
+      },
+      {
+         "bufferView": 1,
+         "byteOffset": 0,
+         "componentType": 5126,
+         "count": 5,
+         "type": "VEC4"
+      }
+   ],
+   "animations": [
+      {
+         "channels": [
+            {
+               "sampler": 0,
+               "target": {
+                  "node": 0,
+                  "path": "rotation"
+               }
+            }
+         ],
+         "samplers": [
+            {
+               "input": 0,
+               "interpolation": "LINEAR",
+               "output": 1
+            }
+         ]
+      }
+   ],
+   "asset": {
+      "generator": "gen2gltf2 by UX3D",
+      "version": "2.0"
+   },
+   "bufferViews": [
+      {
+         "buffer": 0,
+         "byteLength": 20,
+         "byteOffset": 0
+      },
+      {
+         "buffer": 0,
+         "byteLength": 80,
+         "byteOffset": 20
+      }
+   ],
+   "buffers": [
+      {
+         "byteLength": 100,
+         "uri": "generated.bin"
+      }
+   ],
+   "nodes": [
+      {}
+   ],
+   "scene": 0,
+   "scenes": [
+      {
+         "nodes": [
+            0
+         ]
+      }
+   ]
+}
