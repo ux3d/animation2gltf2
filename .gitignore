@@ -31,3 +31,8 @@
 *.out
 *.app
 .settings
+/Debug/
+/Release/
+/build/
+generated.bin
+generated.gltf
