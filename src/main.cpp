@@ -7,6 +7,11 @@
 
 using json = nlohmann::json;
 
+float maxf(float x, float other)
+{
+	return (x > other) ? x : other;
+}
+
 bool loadFile(std::string& output, const std::string& filename)
 {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -43,6 +48,26 @@ bool saveFile(const std::string& output, const std::string& filename)
 int main(int argc, char *argv[])
 {
 	float duration = 2.0f;
+	float clockwise = 1.0f;
+
+	for (int i = 0; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-d") == 0 && (i + 1 < argc))
+		{
+			duration = maxf(std::stof(argv[i + 1]), 0.0f);
+		}
+		else if (strcmp(argv[i], "-c") == 0 && (i + 1 < argc))
+		{
+			if (strcmp(argv[i + 1], "true") == 0)
+			{
+				clockwise = 1.0f;
+			}
+			else if (strcmp(argv[i + 1], "false") == 0)
+			{
+				clockwise = -1.0f;
+			}
+		}
+	}
 
 	std::string loadname = "template.gltf";
     std::string savename = "generated.gltf";
@@ -78,7 +103,7 @@ int main(int argc, char *argv[])
     floatData.push_back(+0.000f);
     floatData.push_back(+0.707f);
     floatData.push_back(+0.000f);
-    floatData.push_back(+0.707f);
+    floatData.push_back(-clockwise * +0.707f);
 
     floatData.push_back(+0.000f);
     floatData.push_back(+1.000f);
@@ -88,7 +113,7 @@ int main(int argc, char *argv[])
     floatData.push_back(+0.000f);
     floatData.push_back(+0.707f);
     floatData.push_back(+0.000f);
-    floatData.push_back(-0.707f);
+    floatData.push_back(clockwise * +0.707f);
 
     floatData.push_back(+0.000f);
     floatData.push_back(+0.000f);
