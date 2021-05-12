@@ -2,7 +2,8 @@
 
 # Generate glTF 2.0 content
 
-gen2gltf2 is a command line tool for generating glTF 2.0 content. For now, a basic animation rotation can be generated
+gen2gltf2 is a command line tool for generating glTF 2.0 content.  
+For now, a basic animation rotation and translation can be generated.  
 
 Usage: `gen2gltf2.exe [-o rotation -t 2.0 -a y -d cw -e 2.0 -b false]`
 
