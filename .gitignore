@@ -36,3 +36,4 @@
 /build/
 generated.bin
 generated.gltf
+*.bin
