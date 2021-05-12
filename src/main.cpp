@@ -53,26 +53,29 @@ int main(int argc, char *argv[])
 	float direction = 1.0f;
 	std::string axis = "y";
 
+	float end = 2.0f;
+	float offset = 0.0f;
+
 	for (int i = 0; i < argc; i++)
 	{
-		if (strcmp(argv[i], "-t") == 0 && (i + 1 < argc))
+		if (strcmp(argv[i], "-o") == 0 && (i + 1 < argc))
 		{
-			duration = maxf(std::stof(argv[i + 1]), 0.0f);
-		}
-		else if (strcmp(argv[i], "-d") == 0 && (i + 1 < argc))
-		{
-			if (strcmp(argv[i + 1], "cw") == 0)
+			if (strcmp(argv[i + 1], "rotation") == 0)
 			{
-				direction = 1.0f;
+				operation = "rotation";
 			}
-			else if (strcmp(argv[i + 1], "ccw") == 0)
+			else if (strcmp(argv[i + 1], "translation") == 0)
 			{
-				direction = -1.0f;
+				operation = "translation";
 			}
 			else
 			{
-				printf("Warning: Unknown direction '%s'\n", argv[i + 1]);
+				printf("Warning: Unknown operation '%s'\n", argv[i + 1]);
 			}
+		}
+		else if (strcmp(argv[i], "-t") == 0 && (i + 1 < argc))
+		{
+			duration = maxf(std::stof(argv[i + 1]), 0.0f);
 		}
 		else if (strcmp(argv[i], "-a") == 0 && (i + 1 < argc))
 		{
@@ -93,13 +96,48 @@ int main(int argc, char *argv[])
 				printf("Warning: Unknown axis '%s'\n", argv[i + 1]);
 			}
 		}
+		else if (strcmp(argv[i], "-d") == 0 && (i + 1 < argc))
+		{
+			if (strcmp(argv[i + 1], "cw") == 0)
+			{
+				direction = 1.0f;
+			}
+			else if (strcmp(argv[i + 1], "ccw") == 0)
+			{
+				direction = -1.0f;
+			}
+			else
+			{
+				printf("Warning: Unknown direction '%s'\n", argv[i + 1]);
+			}
+		}
+		else if (strcmp(argv[i], "-e") == 0 && (i + 1 < argc))
+		{
+			end = std::stof(argv[i + 1]);
+		}
+		else if (strcmp(argv[i], "-b") == 0 && (i + 1 < argc))
+		{
+			if (strcmp(argv[i + 1], "true") == 0)
+			{
+				offset = end * 0.5f;
+			}
+			else if (strcmp(argv[i + 1], "false") == 0)
+			{
+				offset = 0.0;
+			}
+			else
+			{
+				printf("Warning: Unknown bounce value '%s'\n", argv[i + 1]);
+			}
+		}
 	}
 
 	std::string generatorname = operation;
+
+	generatorname += "_" + axis;
+
 	if (operation == "rotation")
 	{
-		generatorname += "_" + axis;
-
 		if (direction == 1.0f)
 		{
 			generatorname += "_cw";
@@ -108,11 +146,31 @@ int main(int argc, char *argv[])
 		{
 			generatorname += "_ccw";
 		}
+	}
+	else if (operation == "translation")
+	{
+		if (direction == 1.0f)
+		{
+			generatorname += "_pos";
+		}
+		else
+		{
+			generatorname += "_neg";
+		}
 
-		generatorname += "_" + std::to_string(duration);
+		if (offset == 0.0f)
+		{
+			generatorname += "_oneway";
+		}
+		else
+		{
+			generatorname += "_bounce";
+		}
 	}
 
-	std::string loadname = "template.gltf";
+	generatorname += "_" + std::to_string(duration);
+
+	std::string loadname = "template_" + operation + ".gltf";
     std::string savename = generatorname + ".gltf";
     std::string binaryname = generatorname + ".bin";
 
@@ -133,74 +191,121 @@ int main(int argc, char *argv[])
 
     std::vector<float> floatData;
 
-    // Timepoint
-    for (size_t i = 0; i < 5; i++)
+    if (operation == "rotation")
     {
-    	floatData.push_back(duration * static_cast<float>(i) / 4.0f);
-    }
+		// Timepoint
+		for (size_t i = 0; i < 5; i++)
+		{
+			floatData.push_back(duration * static_cast<float>(i) / 4.0f);
+		}
 
-    // Quaternion
-    floatData.push_back(+0.000f);
-    floatData.push_back(+0.000f);
-    floatData.push_back(+0.000f);
-    floatData.push_back(+1.000f);
-
-    if (axis == "x")
-    {
-		floatData.push_back(-direction * +0.707f);
+		// Quaternion
 		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.707f);
-
-		floatData.push_back(+1.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-
-		floatData.push_back(direction * +0.707f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.707f);
-    }
-    else if (axis == "y")
-    {
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.707f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(-direction * +0.707f);
-
-		floatData.push_back(+0.000f);
-		floatData.push_back(+1.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.707f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(direction * +0.707f);
-    }
-    else if (axis == "z")
-    {
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.707f);
-		floatData.push_back(-direction * +0.707f);
-
 		floatData.push_back(+0.000f);
 		floatData.push_back(+0.000f);
 		floatData.push_back(+1.000f);
-		floatData.push_back(+0.000f);
+
+		if (axis == "x")
+		{
+			floatData.push_back(-direction * +0.707f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.707f);
+
+			floatData.push_back(+1.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+
+			floatData.push_back(direction * +0.707f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.707f);
+		}
+		else if (axis == "y")
+		{
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.707f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(-direction * +0.707f);
+
+			floatData.push_back(+0.000f);
+			floatData.push_back(+1.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.707f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(direction * +0.707f);
+		}
+		else if (axis == "z")
+		{
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.707f);
+			floatData.push_back(-direction * +0.707f);
+
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+1.000f);
+			floatData.push_back(+0.000f);
+
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.707f);
+			floatData.push_back(direction * +0.707f);
+		}
 
 		floatData.push_back(+0.000f);
 		floatData.push_back(+0.000f);
-		floatData.push_back(+0.707f);
-		floatData.push_back(direction * +0.707f);
+		floatData.push_back(+0.000f);
+		floatData.push_back(+1.000f);
     }
+    else if (operation == "translation")
+    {
+		// Timepoint
+		for (size_t i = 0; i < 3; i++)
+		{
+			floatData.push_back(duration * static_cast<float>(i) / 2.0f);
+		}
 
-    floatData.push_back(+0.000f);
-    floatData.push_back(+0.000f);
-    floatData.push_back(+0.000f);
-    floatData.push_back(+1.000f);
+		// Vec3
+		floatData.push_back(+0.000f);
+		floatData.push_back(+0.000f);
+		floatData.push_back(+0.000f);
+
+		if (axis == "x")
+		{
+			floatData.push_back(end * 0.5f + offset);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+
+			floatData.push_back(end - 2.0f * offset);
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+		}
+		else if (axis == "y")
+		{
+			floatData.push_back(+0.000f);
+			floatData.push_back(end * 0.5f + offset);
+			floatData.push_back(+0.000f);
+
+			floatData.push_back(+0.000f);
+			floatData.push_back(end - 2.0f * offset);
+			floatData.push_back(+0.000f);
+		}
+		else if (axis == "z")
+		{
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(end * 0.5f + offset);
+
+			floatData.push_back(+0.000f);
+			floatData.push_back(+0.000f);
+			floatData.push_back(end - 2.0f * offset);
+		}
+    }
 
     std::string data;
     data.resize(floatData.size() * sizeof(float));
