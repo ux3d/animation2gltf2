@@ -22,3 +22,4 @@ Usage: `gen2gltf2.exe [-t 2.0 -d cw -a y]`
 
 Import the generated glTF in e.g. [Gestaltor](https://gestaltor.io/) and reuse in your scene.  
 
+A short tutorial can be found here: [Gestaltor - How to use an imported animation](https://docs.gestaltor.io/#use-an-imported-animation).  
