@@ -28,6 +28,13 @@ float minf(float x, float other)
 	return (x < other) ? x : other;
 }
 
+float clampf(float x, float minVal, float maxVal)
+{
+	float t = (x > minVal) ? x : minVal;
+
+	return (t < maxVal) ? t : maxVal;
+}
+
 float radiansf(float degrees)
 {
 	return (PI * degrees) / 180.0f;
@@ -101,6 +108,8 @@ int main(int argc, char *argv[])
 
 	bool bounce = false;
 
+	float degree = 360.0f;
+
 	//
 
 	for (int i = 0; i < argc; i++)
@@ -122,7 +131,7 @@ int main(int argc, char *argv[])
 				return -1;
 			}
 		}
-		else if (strcmp(argv[i], "-d") == 0 && (i + 1 < argc))
+		else if (strcmp(argv[i], "-t") == 0 && (i + 1 < argc))
 		{
 			duration = maxf(std::stof(argv[i + 1]), 0.0f);
 		}
@@ -153,6 +162,10 @@ int main(int argc, char *argv[])
 				printf("Warning: Unknown bounce value '%s'\n", argv[i + 1]);
 			}
 		}
+		else if (strcmp(argv[i], "-d") == 0 && (i + 1 < argc))
+		{
+			degree = clampf(std::stof(argv[i + 1]), -360.0f, 360.0f);
+		}
 	}
 
 	//
@@ -169,7 +182,7 @@ int main(int argc, char *argv[])
 
 	std::string generatorname = operation;
 
-	generatorname += "_d" + std::to_string(duration);
+	generatorname += "_t" + std::to_string(duration);
 
 	generatorname += "_x" + std::to_string(x);
 	generatorname += "_y" + std::to_string(y);
@@ -177,6 +190,7 @@ int main(int argc, char *argv[])
 
 	generatorname += "_b" + std::string(bounce ? "true" : "false");
 
+	generatorname += "_d" + std::to_string(degree);
 
 	std::string loadname = "template.gltf";
     std::string savename = generatorname + ".gltf";
@@ -230,44 +244,45 @@ int main(int argc, char *argv[])
 		floatData.push_back(+0.0f);
 		floatData.push_back(+1.0f);
 
-		q = eulerToQuaternionf(radiansf(360.0f * 0.25f) * x, radiansf(360.0f * 0.25f) * y, radiansf(360.0f * 0.25f) * z);
+		q = eulerToQuaternionf(radiansf(degree * 0.25f) * x, radiansf(degree * 0.25f) * y, radiansf(degree * 0.25f) * z);
 		floatData.push_back(q.x);
 		floatData.push_back(q.y);
 		floatData.push_back(q.z);
 		floatData.push_back(q.w);
 
-		q = eulerToQuaternionf(radiansf(360.0f * 0.5f) * x, radiansf(360.0f * 0.5f) * y, radiansf(360.0f * 0.5f) * z);
+		q = eulerToQuaternionf(radiansf(degree * 0.5f) * x, radiansf(degree * 0.5f) * y, radiansf(degree * 0.5f) * z);
 		floatData.push_back(q.x);
 		floatData.push_back(q.y);
 		floatData.push_back(q.z);
 		floatData.push_back(q.w);
 
-		q = eulerToQuaternionf(radiansf(360.0f * 0.75f) * x, radiansf(360.0f * 0.75f) * y, radiansf(360.0f * 0.75f) * z);
+		q = eulerToQuaternionf(radiansf(degree * 0.75f) * x, radiansf(degree * 0.75f) * y, radiansf(degree * 0.75f) * z);
 		floatData.push_back(q.x);
 		floatData.push_back(q.y);
 		floatData.push_back(q.z);
 		floatData.push_back(q.w);
 
-		floatData.push_back(+0.0f);
-		floatData.push_back(+0.0f);
-		floatData.push_back(+0.0f);
-		floatData.push_back(+1.0f);
+		q = eulerToQuaternionf(radiansf(degree * 1.0f) * x, radiansf(degree * 1.0f) * y, radiansf(degree * 1.0f) * z);
+		floatData.push_back(q.x);
+		floatData.push_back(q.y);
+		floatData.push_back(q.z);
+		floatData.push_back(q.w);
 
 		if (bounce)
 		{
-			q = eulerToQuaternionf(radiansf(360.0f * 0.75f) * x, radiansf(360.0f * 0.75f) * y, radiansf(360.0f * 0.75f) * z);
+			q = eulerToQuaternionf(radiansf(degree * 0.75f) * x, radiansf(degree * 0.75f) * y, radiansf(degree * 0.75f) * z);
 			floatData.push_back(q.x);
 			floatData.push_back(q.y);
 			floatData.push_back(q.z);
 			floatData.push_back(q.w);
 
-			q = eulerToQuaternionf(radiansf(360.0f * 0.5f) * x, radiansf(360.0f * 0.5f) * y, radiansf(360.0f * 0.5f) * z);
+			q = eulerToQuaternionf(radiansf(degree * 0.5f) * x, radiansf(degree * 0.5f) * y, radiansf(degree * 0.5f) * z);
 			floatData.push_back(q.x);
 			floatData.push_back(q.y);
 			floatData.push_back(q.z);
 			floatData.push_back(q.w);
 
-			q = eulerToQuaternionf(radiansf(360.0f * 0.25f) * x, radiansf(360.0f * 0.25f) * y, radiansf(360.0f * 0.25f) * z);
+			q = eulerToQuaternionf(radiansf(degree * 0.25f) * x, radiansf(degree * 0.25f) * y, radiansf(degree * 0.25f) * z);
 			floatData.push_back(q.x);
 			floatData.push_back(q.y);
 			floatData.push_back(q.z);
