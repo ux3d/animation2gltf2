@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <string>
@@ -7,9 +8,52 @@
 
 using json = nlohmann::json;
 
+constexpr float PI = 3.14159265358979323846f;
+
+struct Quaternion
+{
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+    float w = 1.0f;
+};
+
 float maxf(float x, float other)
 {
 	return (x > other) ? x : other;
+}
+
+float minf(float x, float other)
+{
+	return (x < other) ? x : other;
+}
+
+float radiansf(float degrees)
+{
+	return (PI * degrees) / 180.0f;
+}
+
+float degreesf(float radians)
+{
+	return 180.0f * radians / PI;
+}
+
+Quaternion eulerToQuaternionf(double xRadians, double yRadians, double zRadians)
+{
+    float cx = cosf(xRadians * 0.5);
+    float sx = sinf(xRadians * 0.5);
+    float cy = cosf(yRadians * 0.5);
+    float sy = sinf(yRadians * 0.5);
+    float cz = cosf(zRadians * 0.5);
+    float sz = sinf(zRadians * 0.5);
+
+    Quaternion q;
+    q.x = sx * cy * cz - cx * sy * sz;
+    q.y = cx * sy * cz + sx * cy * sz;
+    q.z = cx * cy * sz - sx * sy * cz;
+    q.w = cx * cy * cz + sx * sy * sz;
+
+    return q;
 }
 
 bool loadFile(std::string& output, const std::string& filename)
