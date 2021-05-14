@@ -38,7 +38,7 @@ float degreesf(float radians)
 	return 180.0f * radians / PI;
 }
 
-Quaternion eulerToQuaternionf(double xRadians, double yRadians, double zRadians)
+Quaternion eulerToQuaternionf(float xRadians, float yRadians, float zRadians)
 {
     float cx = cosf(xRadians * 0.5);
     float sx = sinf(xRadians * 0.5);
@@ -91,14 +91,17 @@ bool saveFile(const std::string& output, const std::string& filename)
 
 int main(int argc, char *argv[])
 {
-	float duration = 2.0f;
 	std::string operation = "rotation";
 
-	float direction = 1.0f;
-	std::string axis = "y";
+	float duration = 2.0f;
 
-	float end = 2.0f;
-	float offset = 0.0f;
+	float x = 0.0f;
+	float y = 1.0f;
+	float z = 0.0f;
+
+	bool bounce = false;
+
+	//
 
 	for (int i = 0; i < argc; i++)
 	{
@@ -114,60 +117,36 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				printf("Warning: Unknown operation '%s'\n", argv[i + 1]);
-			}
-		}
-		else if (strcmp(argv[i], "-t") == 0 && (i + 1 < argc))
-		{
-			duration = maxf(std::stof(argv[i + 1]), 0.0f);
-		}
-		else if (strcmp(argv[i], "-a") == 0 && (i + 1 < argc))
-		{
-			if (strcmp(argv[i + 1], "x") == 0)
-			{
-				axis = "x";
-			}
-			else if (strcmp(argv[i + 1], "y") == 0)
-			{
-				axis = "y";
-			}
-			else if (strcmp(argv[i + 1], "z") == 0)
-			{
-				axis = "z";
-			}
-			else
-			{
-				printf("Warning: Unknown axis '%s'\n", argv[i + 1]);
+				printf("Error: Unknown operation '%s'\n", argv[i + 1]);
+
+				return -1;
 			}
 		}
 		else if (strcmp(argv[i], "-d") == 0 && (i + 1 < argc))
 		{
-			if (strcmp(argv[i + 1], "cw") == 0)
-			{
-				direction = 1.0f;
-			}
-			else if (strcmp(argv[i + 1], "ccw") == 0)
-			{
-				direction = -1.0f;
-			}
-			else
-			{
-				printf("Warning: Unknown direction '%s'\n", argv[i + 1]);
-			}
+			duration = maxf(std::stof(argv[i + 1]), 0.0f);
 		}
-		else if (strcmp(argv[i], "-e") == 0 && (i + 1 < argc))
+		else if (strcmp(argv[i], "-x") == 0 && (i + 1 < argc))
 		{
-			end = std::stof(argv[i + 1]);
+			x = std::stof(argv[i + 1]);
+		}
+		else if (strcmp(argv[i], "-y") == 0 && (i + 1 < argc))
+		{
+			y = std::stof(argv[i + 1]);
+		}
+		else if (strcmp(argv[i], "-z") == 0 && (i + 1 < argc))
+		{
+			z = std::stof(argv[i + 1]);
 		}
 		else if (strcmp(argv[i], "-b") == 0 && (i + 1 < argc))
 		{
 			if (strcmp(argv[i + 1], "true") == 0)
 			{
-				offset = end * 0.5f;
+				bounce = true;
 			}
 			else if (strcmp(argv[i + 1], "false") == 0)
 			{
-				offset = 0.0;
+				bounce = false;
 			}
 			else
 			{
@@ -176,45 +155,30 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	std::string generatorname = operation;
-
-	generatorname += "_" + axis;
+	//
 
 	if (operation == "rotation")
 	{
-		if (direction == 1.0f)
-		{
-			generatorname += "_cw";
-		}
-		else
-		{
-			generatorname += "_ccw";
-		}
-	}
-	else if (operation == "translation")
-	{
-		if (direction == 1.0f)
-		{
-			generatorname += "_pos";
-		}
-		else
-		{
-			generatorname += "_neg";
-		}
-
-		if (offset == 0.0f)
-		{
-			generatorname += "_oneway";
-		}
-		else
-		{
-			generatorname += "_bounce";
-		}
+		float length = sqrtf(x*x + y*y + z*z);
+		x /= length;
+		y /= length;
+		z /= length;
 	}
 
-	generatorname += "_" + std::to_string(duration);
+	//
 
-	std::string loadname = "template_" + operation + ".gltf";
+	std::string generatorname = operation;
+
+	generatorname += "_d" + std::to_string(duration);
+
+	generatorname += "_x" + std::to_string(x);
+	generatorname += "_y" + std::to_string(y);
+	generatorname += "_z" + std::to_string(z);
+
+	generatorname += "_b" + std::string(bounce ? "true" : "false");
+
+
+	std::string loadname = "template.gltf";
     std::string savename = generatorname + ".gltf";
     std::string binaryname = generatorname + ".bin";
 
@@ -226,134 +190,149 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+	//
+
     json glTF = json::parse(templateContent);
     glTF["accessors"][0]["max"][0] = duration;
+	glTF["animations"][0]["channels"][0]["target"]["path"] = operation;
     glTF["buffers"][0]["uri"] = binaryname;
     glTF["nodes"][0]["name"] = generatorname;
 
     //
 
     std::vector<float> floatData;
+	size_t loop;
 
     if (operation == "rotation")
     {
+    	loop = 5;
+    	if (bounce)
+    	{
+    		loop += 4;
+    	}
+    	glTF["accessors"][0]["count"] = loop;
+    	glTF["accessors"][1]["count"] = loop;
+    	glTF["accessors"][1]["type"] = "VEC4";
+
+    	float divisor = static_cast<float>(loop - 1);
+
 		// Timepoint
-		for (size_t i = 0; i < 5; i++)
+		for (size_t i = 0; i < loop; i++)
 		{
-			floatData.push_back(duration * static_cast<float>(i) / 4.0f);
+			floatData.push_back(duration * static_cast<float>(i) / divisor);
 		}
 
 		// Quaternion
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+1.000f);
+		Quaternion q;
 
-		if (axis == "x")
+		floatData.push_back(+0.0f);
+		floatData.push_back(+0.0f);
+		floatData.push_back(+0.0f);
+		floatData.push_back(+1.0f);
+
+		q = eulerToQuaternionf(radiansf(360.0f * 0.25f) * x, radiansf(360.0f * 0.25f) * y, radiansf(360.0f * 0.25f) * z);
+		floatData.push_back(q.x);
+		floatData.push_back(q.y);
+		floatData.push_back(q.z);
+		floatData.push_back(q.w);
+
+		q = eulerToQuaternionf(radiansf(360.0f * 0.5f) * x, radiansf(360.0f * 0.5f) * y, radiansf(360.0f * 0.5f) * z);
+		floatData.push_back(q.x);
+		floatData.push_back(q.y);
+		floatData.push_back(q.z);
+		floatData.push_back(q.w);
+
+		q = eulerToQuaternionf(radiansf(360.0f * 0.75f) * x, radiansf(360.0f * 0.75f) * y, radiansf(360.0f * 0.75f) * z);
+		floatData.push_back(q.x);
+		floatData.push_back(q.y);
+		floatData.push_back(q.z);
+		floatData.push_back(q.w);
+
+		floatData.push_back(+0.0f);
+		floatData.push_back(+0.0f);
+		floatData.push_back(+0.0f);
+		floatData.push_back(+1.0f);
+
+		if (bounce)
 		{
-			floatData.push_back(-direction * +0.707f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.707f);
+			q = eulerToQuaternionf(radiansf(360.0f * 0.75f) * x, radiansf(360.0f * 0.75f) * y, radiansf(360.0f * 0.75f) * z);
+			floatData.push_back(q.x);
+			floatData.push_back(q.y);
+			floatData.push_back(q.z);
+			floatData.push_back(q.w);
 
-			floatData.push_back(+1.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
+			q = eulerToQuaternionf(radiansf(360.0f * 0.5f) * x, radiansf(360.0f * 0.5f) * y, radiansf(360.0f * 0.5f) * z);
+			floatData.push_back(q.x);
+			floatData.push_back(q.y);
+			floatData.push_back(q.z);
+			floatData.push_back(q.w);
 
-			floatData.push_back(direction * +0.707f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.707f);
+			q = eulerToQuaternionf(radiansf(360.0f * 0.25f) * x, radiansf(360.0f * 0.25f) * y, radiansf(360.0f * 0.25f) * z);
+			floatData.push_back(q.x);
+			floatData.push_back(q.y);
+			floatData.push_back(q.z);
+			floatData.push_back(q.w);
+
+			floatData.push_back(+0.0f);
+			floatData.push_back(+0.0f);
+			floatData.push_back(+0.0f);
+			floatData.push_back(+1.0f);
 		}
-		else if (axis == "y")
-		{
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.707f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(-direction * +0.707f);
-
-			floatData.push_back(+0.000f);
-			floatData.push_back(+1.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.707f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(direction * +0.707f);
-		}
-		else if (axis == "z")
-		{
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.707f);
-			floatData.push_back(-direction * +0.707f);
-
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+1.000f);
-			floatData.push_back(+0.000f);
-
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.707f);
-			floatData.push_back(direction * +0.707f);
-		}
-
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+1.000f);
     }
     else if (operation == "translation")
     {
+    	loop = 3;
+    	if (bounce)
+    	{
+    		loop += 2;
+    	}
+    	glTF["accessors"][0]["count"] = loop;
+    	glTF["accessors"][1]["count"] = loop;
+    	glTF["accessors"][1]["type"] = "VEC3";
+
+    	float divisor = static_cast<float>(loop - 1);
+
 		// Timepoint
-		for (size_t i = 0; i < 3; i++)
+		for (size_t i = 0; i < loop; i++)
 		{
-			floatData.push_back(duration * static_cast<float>(i) / 2.0f);
+			floatData.push_back(duration * static_cast<float>(i) / divisor);
 		}
 
 		// Vec3
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
-		floatData.push_back(+0.000f);
+		floatData.push_back(0.0f);
+		floatData.push_back(0.0f);
+		floatData.push_back(0.0f);
 
-		if (axis == "x")
+		floatData.push_back(0.5f * x);
+		floatData.push_back(0.5f * y);
+		floatData.push_back(0.5f * z);
+
+		floatData.push_back(x);
+		floatData.push_back(y);
+		floatData.push_back(z);
+
+		if (bounce)
 		{
-			floatData.push_back(end * 0.5f + offset);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
+			floatData.push_back(0.5f * x);
+			floatData.push_back(0.5f * y);
+			floatData.push_back(0.5f * z);
 
-			floatData.push_back(end - 2.0f * offset);
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-		}
-		else if (axis == "y")
-		{
-			floatData.push_back(+0.000f);
-			floatData.push_back(end * 0.5f + offset);
-			floatData.push_back(+0.000f);
-
-			floatData.push_back(+0.000f);
-			floatData.push_back(end - 2.0f * offset);
-			floatData.push_back(+0.000f);
-		}
-		else if (axis == "z")
-		{
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(end * 0.5f + offset);
-
-			floatData.push_back(+0.000f);
-			floatData.push_back(+0.000f);
-			floatData.push_back(end - 2.0f * offset);
+			floatData.push_back(0.0f);
+			floatData.push_back(0.0f);
+			floatData.push_back(0.0f);
 		}
     }
 
     std::string data;
     data.resize(floatData.size() * sizeof(float));
     memcpy(data.data(), floatData.data(), floatData.size() * sizeof(float));
+
+    glTF["bufferViews"][0]["byteLength"] = loop * sizeof(float);
+    glTF["bufferViews"][0]["byteOffset"] = 0;
+    glTF["bufferViews"][1]["byteLength"] = data.size() - loop * sizeof(float);
+    glTF["bufferViews"][1]["byteOffset"] = loop * sizeof(float);
+
+    glTF["buffers"][0]["byteLength"] = data.size();
 
 	if (!saveFile(data, binaryname))
 	{

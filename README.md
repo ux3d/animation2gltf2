@@ -3,16 +3,16 @@
 # Generate glTF 2.0 content
 
 gen2gltf2 is a command line tool for generating glTF 2.0 content.  
-For now, a basic animation rotation and translation can be generated.  
+An animation rotation and translation can be generated.  
 
-Usage: `gen2gltf2.exe [-o rotation -t 2.0 -a y -d cw -e 2.0 -b false]`
+Usage: `gen2gltf2.exe [-o rotation -d 2.0 -x 0.0 -y 1.0 -z 0.0 -b false]`  
 
 `-o rotation` Default operation `rotation`. Set `translation` as another operation.  
-`-t 2.0` Default duration of 2 seconds for the complete animation.  
-`-a y` Default rotation or translation axis. Set `x` or `z` for other axis.  
-`-d cw` Default clockwise rotation. Set `ccw` for opposite direction.  Only for `rotation` operation.  
-`-e 2.0` End target value.  Only for `translation` operation.  
-`-b false` Bounce between end value.  Only for `translation` operation.  
+`-d 2.0` Default duration of 2 seconds for the complete animation.  
+`-x 0.0` Rotation x-axis or end position of translation.  
+`-y 1.0` Rotation y-axis or end position of translation.  
+`-z 0.0` Rotation z-axis or end position of translation.  
+`-b false` Bounce start and end position.  
 
 
 ## Software Requirements
