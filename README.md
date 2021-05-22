@@ -1,6 +1,6 @@
 [![](glTF.png)](https://github.com/KhronosGroup/glTF/tree/master/specification/2.0)
 
-# Generate glTF 2.0 content
+# Generate Animation glTF 2.0 content
 
 gen2gltf2 is a command line tool for generating glTF 2.0 content.  
 An animation rotation and translation can be generated.  
