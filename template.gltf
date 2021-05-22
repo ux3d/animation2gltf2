@@ -42,7 +42,7 @@
       }
    ],
    "asset": {
-      "generator": "gen2gltf2 by UX3D",
+      "generator": "animation2gltf2 by UX3D",
       "version": "2.0"
    },
    "bufferViews": [
